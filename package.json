@@ -1,0 +1,25 @@
+{
+  "name": "movie_nft_platform",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@openzeppelin/contracts": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "ether": "^0.0.9",
+    "ethers": "^5.7.2",
+    "express": "^4.21.1",
+    "web3": "^4.14.0"
+  },
+  "devDependencies": {
+    "hardhat": "^2.22.14"
+  }
+}
