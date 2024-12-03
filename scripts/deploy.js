@@ -1,15 +1,19 @@
-const hre = require("hardhat");
-const { errors } = require("web3");
-
 async function main() {
+  const [deployer] = await ethers.getSigners();
+
+  console.log("Deploying contracts with the account:", deployer.address);
+
   const MovieNFT = await ethers.getContractFactory("MovieNFT");
-  const movieNFT = await MovieNFT.deploy();
+  const movieNFT = await MovieNFT.deploy(); // No arguments passed here
+
   await movieNFT.deployed();
 
-  console.log("MovieNFT deployed to: ", movieNFT.address);
+  console.log("MovieNFT deployed to:", movieNFT.address);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitcode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("Error in deployment:", error);
+    process.exit(1);
+  });

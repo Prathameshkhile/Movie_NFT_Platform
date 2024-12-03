@@ -1,38 +1,70 @@
-require("dotenv").config();
-const express = require("express");
-const app = express();
-const port = process.env.PORT || 3000;
+require("dotenv").config(); // If you decide to use environment variables
+const { ethers, artifacts, network } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
-const { ethers } = require("ethers");
-const MovieNFT = require("./artifacts/contracts/MovieNFT.sol/MovieNFT.json");
+async function main() {
+  const [deployer] = await ethers.getSigners();
+  console.log("Deploying contracts with the account:", deployer.address);
+  console.log("Account balance:", (await deployer.getBalance()).toString());
 
-const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545", {
-  name: "localhost",
-  chainId: 31337, // Default Hardhat network ID
-});
-const signer = provider.getSigner(0); // Specify account index to avoid ENS resolution issues
+  const MovieNFT = await ethers.getContractFactory(
+    "contracts/MovieNft.sol:MovieNFT"
+  );
 
-const contractAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-const MovieNFTContract = new ethers.Contract(
-  contractAddress,
-  MovieNFT.abi,
-  signer
-);
+  const basePrice = process.env.BASE_PRICE || "0.1"; // Use an env variable or default to 0.1
+  console.log(`Deploying MovieNFT with base price: ${basePrice} ETH`);
 
-app.use(express.json());
+  const movieNFT = await MovieNFT.deploy(
+    "MovieNFT",
+    "MNFT",
+    ethers.utils.parseEther(basePrice)
+  );
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+  await movieNFT.deployed();
+  console.log("MovieNFT deployed to:", movieNFT.address);
 
-app.post("/mint", async (req, res) => {
-  try {
-    const { recipient, tokenURI } = req.body;
-    const tx = await MovieNFTContract.mintNFT(recipient, tokenURI);
-    await tx.wait();
-    res.status(200).send("NFT Minted Successfully!");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Error minting NFT");
+  const contractArtifact = await artifacts.readArtifact(
+    "contracts/MovieNft.sol:MovieNFT"
+  );
+  const networkId = network.config.chainId;
+
+  const contractDetails = {
+    address: movieNFT.address,
+    ...contractArtifact,
+    networks: {
+      [networkId]: {
+        address: movieNFT.address,
+        transactionHash: movieNFT.deployTransaction.hash,
+      },
+    },
+  };
+
+  const outputPath = path.join(
+    __dirname,
+    "./artifacts/contracts/MovieNFT.json"
+  );
+  fs.writeFileSync(outputPath, JSON.stringify(contractDetails, null, 2));
+  console.log("Contract details saved to:", outputPath);
+
+  // Optional: Verify the contract on Etherscan
+  if (network.name !== "hardhat" && network.name !== "localhost") {
+    console.log("Waiting for block confirmations...");
+    await movieNFT.deployTransaction.wait(5); // Wait for 5 block confirmations
+    await hre.run("verify:verify", {
+      address: movieNFT.address,
+      constructorArguments: [
+        "MovieNFT",
+        "MNFT",
+        ethers.utils.parseEther(basePrice),
+      ],
+    });
   }
-});
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("Error in deployment:", error);
+    process.exit(1);
+  });

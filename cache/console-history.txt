@@ -1,0 +1,3 @@
+const movieNFT = await ethers.getContractAt("MovieNFT","E:\Codes\Movie_NFT_Platform\contracts\MovieNFT.sol");await movieNFT.buyShares(amount, { value: ethers.utils.parseEther("0.1")});
+const movieNFT = await ethers.getContractAt("MovieNFT","E:\Codes\Movie_NFT_Platform\contracts\MovieNFT.sol");
+const movieNFT = await ethers.getContractAt("MovieNFT","E:\Codes\Movie_NFT_Platform\contracts\MovieNFT.sol")
