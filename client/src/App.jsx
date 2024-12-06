@@ -61,7 +61,28 @@ function App() {
         .mintNFT(movieName, releaseYear, genre, poster, shares, basePrice)
         .send({ from: account });
       alert("Movie NFT created successfully!");
-      loadMovies(movieNFT); // Reload movies after minting
+
+      // Add the new movie to the local state
+      const newMovie = {
+        tokenId: movies.length, // Simulating tokenId for local list
+        name: movieName,
+        releaseYear,
+        genre,
+        poster,
+        shares,
+        basePrice,
+      };
+      setMovies([...movies, newMovie]); // Add new movie to the list
+
+      // Clear input fields
+      setMovieName("");
+      setReleaseYear("");
+      setGenre("");
+      setPoster("");
+      setShares(0);
+      setBasePrice(0);
+
+      loadMovies(movieNFT); // Reload movies from blockchain
     } catch (error) {
       console.error("Error creating NFT:", error);
     }
@@ -85,6 +106,17 @@ function App() {
       loadMovies(movieNFT); // Reload movies after buying shares
     } catch (error) {
       console.error("Error buying shares:", error);
+    }
+  };
+
+  const removeMovie = async (tokenId) => {
+    try {
+      // Add a method in your smart contract to burn or delete a movie NFT if supported
+      await movieNFT.methods.burn(tokenId).send({ from: account });
+      alert(`Movie with token ID ${tokenId} removed successfully!`);
+      setMovies(movies.filter((movie) => movie.tokenId !== tokenId)); // Update local state
+    } catch (error) {
+      console.error("Error removing movie:", error);
     }
   };
 
@@ -151,10 +183,19 @@ function App() {
 
       {/* Display Movies */}
       <h2>Available Movies</h2>
-      <ul>
-        {movies.map((movie) => (
-          <li key={movie.tokenId}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+        {movies.map((movie, index) => (
+          <div
+            key={movie.tokenId || index}
+            style={{
+              border: "1px solid #ccc",
+              padding: "10px",
+              width: "300px",
+              textAlign: "center",
+            }}
+          >
             <h3>{movie.name}</h3>
+            <p>Token ID: {movie.tokenId}</p>
             <p>Release Year: {movie.releaseYear}</p>
             <p>Genre: {movie.genre}</p>
             <p>
@@ -165,9 +206,15 @@ function App() {
             </p>
             <p>Shares Left: {movie.shares}</p>
             <p>Base Price: {movie.basePrice} Wei</p>
-          </li>
+            <button
+              onClick={() => removeMovie(movie.tokenId)}
+              style={{ background: "red", color: "white", border: "none", padding: "5px 10px" }}
+            >
+              Remove
+            </button>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

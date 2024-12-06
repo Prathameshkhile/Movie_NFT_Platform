@@ -68,3 +68,16 @@ main()
     console.error("Error in deployment:", error);
     process.exit(1);
   });
+
+  const availableMovies = async (contractAddress, tokenIdArray) => {
+    const movieNFT = await ethers.getContractAt("MovieNFT", contractAddress);
+    const movies = [];
+  
+    for (const tokenId of tokenIdArray) {
+      const movie = await movieNFT.tokenIdToMovie(tokenId);
+      movies.push({ tokenId, movie });
+    }
+    return movies;
+  };
+  
+
