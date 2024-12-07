@@ -34,7 +34,7 @@ contract MovieNFT is ERC721, Ownable {
         string memory poster,
         uint256 shares,
         uint256 basePrice
-    ) public {
+    ) public onlyOwner {
         require(shares > 0, "Number of shares must be greater than zero.");
         require(basePrice > 0, "Base price must be greater than zero.");
 
@@ -74,38 +74,12 @@ contract MovieNFT is ERC721, Ownable {
     function getMyShares(uint256 tokenId) public view returns (uint256) {
         return movieShares[tokenId][msg.sender];
     }
+
     mapping(uint256 => string) public tokenIdToMovie;
 
-// Add a function to associate movies with token IDs
-function setMovie(uint256 tokenId, string memory movieName) public {
-    require(_exists(tokenId), "Token ID does not exist");
+    // Add a function to associate movies with token IDs
+    function setMovie(uint256 tokenId, string memory movieName) public onlyOwner {
     require(ownerOf(tokenId) == msg.sender, "Only the token owner can set the movie");
-    tokenIdToMovie[tokenId] = movieName;
+    movies[tokenId].name = movieName;
 }
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-
-contract MovieNFT is ERC721 {
-    uint256 private _currentTokenId = 0;
-    mapping(uint256 => string) public tokenIdToMovie;
-
-    constructor() ERC721("MovieNFT", "MNFT") {}
-
-    // Function to mint NFT and associate it with a movie
-    function mintMovieNFT(string memory movieName) public {
-        _currentTokenId++;
-        _mint(msg.sender, _currentTokenId);
-        tokenIdToMovie[_currentTokenId] = movieName;
-    }
-
-    // Getter for all movies (optional)
-    function getMovies(uint256 tokenId) public view returns (string memory) {
-        require(_exists(tokenId), "Token ID does not exist");
-        return tokenIdToMovie[tokenId];
-    }
-}
-
-
 }
