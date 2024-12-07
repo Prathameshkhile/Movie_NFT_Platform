@@ -18,6 +18,7 @@ function App() {
 
   useEffect(() => {
     loadWeb3();
+    loadMoviesFromLocalStorage(); // Load movies from local storage
   }, []);
 
   const loadWeb3 = async () => {
@@ -45,14 +46,26 @@ function App() {
     }
   };
 
-  const loadMovies = async (contract) => {
-    const totalMovies = (await contract.methods._tokenIdCounter().call()) || 0;
-    const movieList = [];
-    for (let i = 0; i < totalMovies; i++) {
-      const movie = await contract.methods.getMovieDetails(i).call();
-      movieList.push({ tokenId: i, ...movie });
+  const loadMoviesFromLocalStorage = () => {
+    const storedMovies = JSON.parse(localStorage.getItem("movies"));
+    if (storedMovies) {
+      setMovies(storedMovies);
     }
-    setMovies(movieList);
+  };
+
+  const loadMovies = async (contract) => {
+    try {
+      const totalMovies = (await contract.methods._tokenIdCounter().call()) || 0;
+      const movieList = [];
+      for (let i = 0; i < totalMovies; i++) {
+        const movie = await contract.methods.getMovieDetails(i).call();
+        movieList.push({ tokenId: i, ...movie });
+      }
+      setMovies(movieList);
+      localStorage.setItem("movies", JSON.stringify(movieList)); // Save movies to local storage
+    } catch (error) {
+      console.error("Error loading movies:", error);
+    }
   };
 
   const createNFT = async () => {
@@ -62,7 +75,6 @@ function App() {
         .send({ from: account });
       alert("Movie NFT created successfully!");
 
-      // Add the new movie to the local state
       const newMovie = {
         tokenId: movies.length, // Simulating tokenId for local list
         name: movieName,
@@ -72,7 +84,11 @@ function App() {
         shares,
         basePrice,
       };
-      setMovies([...movies, newMovie]); // Add new movie to the list
+
+      const updatedMovies = [...movies, newMovie];
+      setMovies(updatedMovies);
+
+      localStorage.setItem("movies", JSON.stringify(updatedMovies)); // Save updated movies to local storage
 
       // Clear input fields
       setMovieName("");
@@ -81,8 +97,6 @@ function App() {
       setPoster("");
       setShares(0);
       setBasePrice(0);
-
-      loadMovies(movieNFT); // Reload movies from blockchain
     } catch (error) {
       console.error("Error creating NFT:", error);
     }
@@ -103,6 +117,7 @@ function App() {
         .buyShares(buySharesTokenId, buySharesAmount)
         .send({ from: account, value: totalCost });
       alert("Shares purchased successfully!");
+
       loadMovies(movieNFT); // Reload movies after buying shares
     } catch (error) {
       console.error("Error buying shares:", error);
@@ -111,10 +126,13 @@ function App() {
 
   const removeMovie = async (tokenId) => {
     try {
-      // Add a method in your smart contract to burn or delete a movie NFT if supported
       await movieNFT.methods.burn(tokenId).send({ from: account });
       alert(`Movie with token ID ${tokenId} removed successfully!`);
-      setMovies(movies.filter((movie) => movie.tokenId !== tokenId)); // Update local state
+
+      const updatedMovies = movies.filter((movie) => movie.tokenId !== tokenId);
+      setMovies(updatedMovies);
+
+      localStorage.setItem("movies", JSON.stringify(updatedMovies)); // Update local storage
     } catch (error) {
       console.error("Error removing movie:", error);
     }
@@ -208,7 +226,12 @@ function App() {
             <p>Base Price: {movie.basePrice} Wei</p>
             <button
               onClick={() => removeMovie(movie.tokenId)}
-              style={{ background: "red", color: "white", border: "none", padding: "5px 10px" }}
+              style={{
+                background: "red",
+                color: "white",
+                border: "none",
+                padding: "5px 10px",
+              }}
             >
               Remove
             </button>
