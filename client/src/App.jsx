@@ -55,7 +55,8 @@ function App() {
 
   const loadMovies = async (contract) => {
     try {
-      const totalMovies = (await contract.methods._tokenIdCounter().call()) || 0;
+      const totalMovies =
+        (await contract.methods._tokenIdCounter().call()) || 0;
       const movieList = [];
       for (let i = 0; i < totalMovies; i++) {
         const movie = await contract.methods.getMovieDetails(i).call();
@@ -70,8 +71,9 @@ function App() {
 
   const createNFT = async () => {
     try {
+      const basePriceInWei = Web3.utils.toWei(basePrice.toString(), "ether");
       await movieNFT.methods
-        .mintNFT(movieName, releaseYear, genre, poster, shares, basePrice)
+        .mintNFT(movieName, releaseYear, genre, poster, shares, basePriceInWei)
         .send({ from: account });
       alert("Movie NFT created successfully!");
 
@@ -82,7 +84,7 @@ function App() {
         genre,
         poster,
         shares,
-        basePrice,
+        basePrice: basePriceInWei,
       };
 
       const updatedMovies = [...movies, newMovie];
@@ -177,7 +179,7 @@ function App() {
       />
       <input
         type="number"
-        placeholder="Base Price per Share (in Wei)"
+        placeholder="Base Price per Share (in Eth)"
         value={basePrice}
         onChange={(e) => setBasePrice(e.target.value)}
       />
