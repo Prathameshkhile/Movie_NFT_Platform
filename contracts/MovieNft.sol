@@ -82,4 +82,17 @@ contract MovieNFT is ERC721, Ownable {
     require(ownerOf(tokenId) == msg.sender, "Only the token owner can set the movie");
     movies[tokenId].name = movieName;
 }
+function burn(uint256 tokenId) public {
+    require(
+        require(hasRole(BURNER_ROLE, msg.sender), "Caller does not have permission to burn");
+grantRole(BURNER_ROLE, account);
+
+        msg.sender == ownerOf(tokenId) || isApprovedForAll(ownerOf(tokenId), msg.sender),
+        "You don't have permission to burn this NFT"
+    );
+    _burn(tokenId);
+}
+
+
+
 }
