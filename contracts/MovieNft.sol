@@ -75,6 +75,11 @@ contract MovieNFT is ERC721, Ownable {
         return movieShares[tokenId][msg.sender];
     }
 
+    function totaltokenid() public view returns (uint256) {
+    return _currentTokenId;
+}
+
+
     mapping(uint256 => string) public tokenIdToMovie;
 
     // Add a function to associate movies with token IDs

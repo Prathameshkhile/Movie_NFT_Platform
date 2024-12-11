@@ -55,8 +55,7 @@ function App() {
 
   const loadMovies = async (contract) => {
     try {
-      const totalMovies =
-        (await contract.methods._tokenIdCounter().call()) || 0;
+      const totalMovies = (await contract.methods.totaltokenid().call()) || 0;
       const movieList = [];
       for (let i = 0; i < totalMovies; i++) {
         const movie = await contract.methods.getMovieDetails(i).call();
