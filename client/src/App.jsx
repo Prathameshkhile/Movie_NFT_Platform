@@ -27,7 +27,7 @@ function App() {
       await window.ethereum.request({ method: "eth_requestAccounts" });
       setWeb3(web3Instance);
       const accounts = await web3Instance.eth.getAccounts();
-setAccount(accounts[0]); // Ensure the first account is used
+      setAccount(accounts[0]); // Ensure the first account is used
 
       const networkId = await web3Instance.eth.net.getId();
       const deployedNetwork = MovieNFTContract.networks[networkId];
@@ -125,42 +125,48 @@ setAccount(accounts[0]); // Ensure the first account is used
       console.error("Error buying shares:", error);
     }
   };
-  0
-
+  0;
 
   const removeMovie = async (tokenId) => {
     try {
       // Verify ownership
       const owner = await movieNFT.methods.ownerOf(tokenId).call();
       if (owner.toLowerCase() !== account.toLowerCase()) {
-        alert("Permission denied: You must be the owner of the NFT to remove it.");
+        alert(
+          "Permission denied: You must be the owner of the NFT to remove it."
+        );
         return;
       }
-  
+
       // Call the burn function
       await movieNFT.methods.burn(tokenId).send({ from: account });
       alert(`Movie with token ID ${tokenId} removed successfully!`);
-  
+
       // Update local state
       const updatedMovies = movies.filter((movie) => movie.tokenId !== tokenId);
       setMovies(updatedMovies);
       localStorage.setItem("movies", JSON.stringify(updatedMovies));
     } catch (error) {
       console.error("Error removing movie:", error);
-  
+
       // Check for specific errors
       if (error.message.includes("You don't own this NFT")) {
-        alert("Permission denied: You must be the owner of the NFT to remove it.");
+        alert(
+          "Permission denied: You must be the owner of the NFT to remove it."
+        );
       } else if (error.message.includes("revert")) {
-        alert("Transaction reverted. Check your permissions and network settings.");
+        alert(
+          "Transaction reverted. Check your permissions and network settings."
+        );
       } else {
-        alert("Failed to remove the movie. Ensure you have the necessary permissions.");
+        alert(
+          "Failed to remove the movie. Ensure you have the necessary permissions."
+        );
       }
     }
   };
-  
-  
-  
+
+  //hello
 
   return (
     <div>
