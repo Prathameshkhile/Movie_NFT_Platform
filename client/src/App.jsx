@@ -52,17 +52,36 @@ function App() {
       setMovies(storedMovies);
     }
   };
+  const safeStringify = (obj) => {
+    return JSON.stringify(obj, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    );
+  };
 
   const loadMovies = async (contract) => {
     try {
-      const totalMovies = (await contract.methods.totaltokenid().call()) || 0;
+      const totalMovies = parseInt(
+        await contract.methods.totaltokenid().call()
+      ); // Convert totalMovies to number
       const movieList = [];
+
       for (let i = 0; i < totalMovies; i++) {
         const movie = await contract.methods.getMovieDetails(i).call();
-        movieList.push({ tokenId: i, ...movie });
+        movieList.push({
+          tokenId: i,
+          name: movie.name,
+          releaseYear: movie.releaseYear,
+          genre: movie.genre,
+          poster: movie.poster,
+          shares: movie.shares, // Leave as-is; will be serialized safely
+          basePrice: movie.basePrice, // Leave as-is; will be serialized safely
+        });
       }
+
       setMovies(movieList);
-      localStorage.setItem("movies", JSON.stringify(movieList)); // Save movies to local storage
+
+      // Use the safeStringify function
+      localStorage.setItem("movies", safeStringify(movieList));
     } catch (error) {
       console.error("Error loading movies:", error);
     }
@@ -113,18 +132,24 @@ function App() {
         return;
       }
 
-      const totalCost = movie.basePrice * buySharesAmount;
+      // Convert basePrice to BigInt if it's not already
+      const basePrice = BigInt(movie.basePrice);
+      const sharesAmount = BigInt(buySharesAmount);
+
+      // Calculate totalCost in BigInt
+      const totalCost = basePrice * sharesAmount;
+
+      // Pass `totalCost` as a string because Web3 requires numbers or strings
       await movieNFT.methods
         .buyShares(buySharesTokenId, buySharesAmount)
-        .send({ from: account, value: totalCost });
-      alert("Shares purchased successfully!");
+        .send({ from: account, value: totalCost.toString() }); // Ensure totalCost is passed as a string
 
+      alert("Shares purchased successfully!");
       loadMovies(movieNFT); // Reload movies after buying shares
     } catch (error) {
       console.error("Error buying shares:", error);
     }
   };
-  0;
 
   const removeMovie = async (tokenId) => {
     try {
@@ -251,19 +276,8 @@ function App() {
                 View
               </a>
             </p>
-            <p>Shares Left: {movie.shares}</p>
-            <p>Base Price: {movie.basePrice} Wei</p>
-            <button
-              onClick={() => removeMovie(movie.tokenId)}
-              style={{
-                background: "red",
-                color: "white",
-                border: "none",
-                padding: "5px 10px",
-              }}
-            >
-              Remove
-            </button>
+            <p>Total Shares: {BigInt(movie.shares).toString()}</p>
+            <p>Base Price: {BigInt(movie.basePrice).toString()} Wei</p>
           </div>
         ))}
       </div>
