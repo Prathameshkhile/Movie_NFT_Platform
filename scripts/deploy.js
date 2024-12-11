@@ -29,10 +29,12 @@ async function main() {
     },
   };
 
+  // Paths for saving the contract data
   const frontendPath = path.resolve(
     __dirname,
     "../client/contracts/MovieNFT.json"
   );
+  const srcPath = path.resolve(__dirname, "../src/contracts/MovieNFT.json");
 
   // Ensure the client/contracts directory exists
   const frontendDir = path.dirname(frontendPath);
@@ -40,10 +42,19 @@ async function main() {
     fs.mkdirSync(frontendDir, { recursive: true });
   }
 
+  // Ensure the src/contracts directory exists
+  const srcDir = path.dirname(srcPath);
+  if (!fs.existsSync(srcDir)) {
+    fs.mkdirSync(srcDir, { recursive: true });
+  }
+
   // Write the updated contract data to the frontend
   fs.writeFileSync(frontendPath, JSON.stringify(contractData, null, 2));
-
   console.log("Contract ABI and address saved to:", frontendPath);
+
+  // Write the updated contract data to src/contracts
+  fs.writeFileSync(srcPath, JSON.stringify(contractData, null, 2));
+  console.log("Contract ABI and address saved to:", srcPath);
 }
 
 main()
